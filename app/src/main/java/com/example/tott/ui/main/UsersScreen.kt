@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tott.R
 import com.example.tott.ui.theme.TOTTTheme
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -68,22 +67,30 @@ fun UsersScreen() {
 
 @Composable
 private fun CalendarView() {
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-    val today = LocalDate.now()
+    // Lógica para que el calendario sea interactivo
+    var currentMonth by remember { mutableStateOf(YearMonth.of(2025, 8)) } // Fijado a Agosto 2025 como en el mockup
 
     val calendarDays = remember(currentMonth) {
         val firstDayOfMonth = currentMonth.atDay(1)
-        val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
+        val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Dom=0, Lun=1...
         val daysInMonth = currentMonth.lengthOfMonth()
+
         val days = mutableListOf<CalendarDay>()
+        // Rellenar espacios vacíos al principio del mes
         for (i in 0 until firstDayOfWeek) {
             days.add(CalendarDay(""))
         }
+        // Rellenar los días del mes
         for (day in 1..daysInMonth) {
-            val user = when ((day + currentMonth.monthValue) % 10) { // Lógica de ejemplo para variar los días
-                2 -> userNicolas
-                7 -> userEugenia
-                else -> null
+            // Lógica para asignar usuarios solo en Agosto 2025, como en el mockup
+            val user = if (currentMonth.year == 2025 && currentMonth.monthValue == 8) {
+                when (day) {
+                    2, 12, 22 -> userNicolas
+                    7, 17 -> userEugenia
+                    else -> null
+                }
+            } else {
+                null
             }
             days.add(CalendarDay(day.toString(), user))
         }
@@ -96,30 +103,29 @@ private fun CalendarView() {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            val headerDateFormatter = DateTimeFormatter.ofPattern("E, MMM d").withLocale(Locale.getDefault())
-            Text(today.format(headerDateFormatter), style = MaterialTheme.typography.bodySmall)
-            Text(today.format(DateTimeFormatter.ofPattern("EEEE")), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("Select date", style = MaterialTheme.typography.bodySmall)
+            Text("Mon, Aug 17", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy").withLocale(Locale.getDefault())),
+                    text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy").withLocale(Locale.forLanguageTag("es"))),
                     modifier = Modifier.weight(1f),
                     fontWeight = FontWeight.Bold
                 )
                 // Botones de texto para evitar errores de iconos
                 TextButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                    Text("<")
+                    Text("<", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 TextButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                    Text(">")
+                    Text(">", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                val daysOfWeek = listOf("S", "M", "T", "W", "T", "F", "S")
+                val daysOfWeek = listOf("D", "L", "M", "M", "J", "V", "S") // Días en español
                 daysOfWeek.forEach {
                     Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -175,7 +181,7 @@ private fun UserListView() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, locale = "es")
 @Composable
 fun UsersScreenPreview() {
     TOTTTheme {
