@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,8 +23,8 @@ import com.example.tott.ui.theme.TOTTTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onBackClick: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    onLoginClick: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -35,7 +36,7 @@ fun RegisterScreen(
             TopAppBar(
                 title = { Text("Registro de usuario") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = onLoginClick) {
                         Icon(
                             // *** USANDO EL NUEVO ICONO ***
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -137,6 +138,6 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenPreview() {
     TOTTTheme {
-        RegisterScreen(onBackClick = {}, onRegisterSuccess = {})
+        RegisterScreen(onLoginClick = {}, onRegisterSuccess = {})
     }
 }

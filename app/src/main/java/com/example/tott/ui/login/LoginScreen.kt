@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,15 +21,18 @@ import com.example.tott.ui.theme.TOTTTheme
 
 @Composable
 fun LoginScreen(
-    // *** AÑADIMOS EL PARÁMETRO QUE FALTABA ***
-    onLoginClick: () -> Unit,
+    onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
-    // Variables de estado para los campos de texto
+    // *** SOLUCIÓN: Mueve la obtención del contexto aquí ***
+    val context = LocalContext.current
+
+    // Ahora 'context' está disponible para inicializar CredentialsManager
+    val credentialsManager = CredentialsManager(context)
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val context = LocalContext.current
 
     Surface(
         color = MaterialTheme.colorScheme.background,
@@ -39,7 +45,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            
+
             Spacer(modifier = Modifier.weight(1f))
 
             Card(
@@ -85,13 +91,12 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // *** LÓGICA DE VALIDACIÓN AÑADIDA AL BOTÓN ***
                     Button(
                         onClick = {
-                            val credentialsManager = CredentialsManager(context)
+                            // *** SOLUCIÓN: Reutiliza la instancia de credentialsManager ***
                             if (credentialsManager.validateCredentials(email, password)) {
                                 Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
-                                onLoginClick() // Navega si es correcto
+                                onLoginSuccess()
                             } else {
                                 Toast.makeText(context, "Email o contraseña incorrectos", Toast.LENGTH_SHORT).show()
                             }
@@ -109,7 +114,7 @@ fun LoginScreen(
                     }
                 }
             }
-            
+
             TextButton(
                 onClick = onRegisterClick,
                 modifier = Modifier.padding(top = 16.dp)
@@ -126,11 +131,11 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     TOTTTheme {
-        // *** ACTUALIZAMOS LA PREVIEW ***
         LoginScreen(
-            onLoginClick = {},
+
             onRegisterClick = {},
-            onForgotPasswordClick = {}
+            onForgotPasswordClick = {},
+            onLoginSuccess = {}
         )
     }
 }

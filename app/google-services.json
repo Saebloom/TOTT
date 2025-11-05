@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326779927219",
+    "project_id": "tott-3245d",
+    "storage_bucket": "tott-3245d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326779927219:android:c520460fae6b07c53f8ec6",
+        "android_client_info": {
+          "package_name": "com.example.tott"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB83AN7f0LSy3DET11EJDkWFMhjZIa0Unw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
