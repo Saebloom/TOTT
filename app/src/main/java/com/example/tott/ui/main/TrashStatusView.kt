@@ -57,8 +57,9 @@ fun TrashStatusView() { // Nuevo nombre de función
             ) {
                 if (isConnected) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_background),
+                        painter = painterResource(id = R.drawable.basurero),
                         contentDescription = "Imagen del basurero",
+
                         modifier = Modifier
                             .height(150.dp)
                             .fillMaxWidth()

@@ -36,8 +36,9 @@ import java.util.Locale
 data class User(val name: String, val color: Color, val avatarRes: Int)
 data class CalendarDay(val day: String, val user: User? = null)
 
-val userNicolas = User("Nicolas Espejo", Color(0xFFB57F7F), R.drawable.ic_launcher_foreground) // Color café
-val userEugenia = User("Eugenia Espinoza", Color(0xFF8F7FB5), R.drawable.ic_launcher_background) // Color morado
+// Asegúrate de que los archivos 'nicolas.jpg' y 'eugenia.jpg' estén en tu carpeta res/drawable
+val userNicolas = User("Nicolas Espejo", Color(0xFFB57F7F), R.drawable.nicolas) // Color café
+val userEugenia = User("Eugenia Espinoza", Color(0xFF8F7FB5), R.drawable.eugenia) // Color morado
 
 val users = listOf(userNicolas, userEugenia)
 
