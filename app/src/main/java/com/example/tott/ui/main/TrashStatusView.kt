@@ -14,6 +14,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,16 +25,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tott.R
 import com.example.tott.ui.theme.TOTTTheme
 
 
 @Composable
-fun TrashStatusView() { // Nuevo nombre de función
-    var isConnected by remember { mutableStateOf(false) }
-    val batteryLevel = "98%"
-    val lastSync = "20/10/2025"
-    val fillLevel = "50%"
+fun TrashStatusView(viewModel: TrashStatusViewModel = viewModel()) {
+    val isConnected by viewModel.isConnected.collectAsState()
+    val batteryLevel by viewModel.batteryLevel.collectAsState()
+    val lastSync by viewModel.lastSyncTime.collectAsState()
+    val fillLevel by viewModel.fillLevel.collectAsState()
 
     Column(
         modifier = Modifier
@@ -67,9 +70,9 @@ fun TrashStatusView() { // Nuevo nombre de función
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Porcentaje de batería: $batteryLevel", style = MaterialTheme.typography.bodyMedium)
+                    Text("Porcentaje de batería: $batteryLevel%", style = MaterialTheme.typography.bodyMedium)
                     Text("Última sincronización: $lastSync", style = MaterialTheme.typography.bodyMedium)
-                    Text("Basurero está $fillLevel", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    Text("Basurero está al $fillLevel%", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 } else {
                     Icon(
                         imageVector = Icons.Filled.Warning,
@@ -92,8 +95,14 @@ fun TrashStatusView() { // Nuevo nombre de función
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(onClick = { isConnected = !isConnected }) {
-                    Text(if (isConnected) "Actualizar" else "Sincronizar")
+                Button(onClick = {
+                    if (isConnected) {
+                        viewModel.disconnect()
+                    } else {
+                        viewModel.syncWithTrashCan()
+                    }
+                }) {
+                    Text(if (isConnected) "Desconectar" else "Sincronizar")
                 }
             }
         }
