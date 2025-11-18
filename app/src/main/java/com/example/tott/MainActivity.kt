@@ -5,35 +5,44 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.tott.ui.forgotpassword.ForgotPasswordScreen // Asumiendo que tienes esta pantalla
+import com.example.tott.broadcast.ReminderScheduler
+import com.example.tott.data.UserRepository
+import com.example.tott.ui.forgotpassword.ForgotPasswordScreen
 import com.example.tott.ui.login.LoginScreen
 import com.example.tott.ui.main.MainScreen
-import com.example.tott.ui.main.ReminderScreen // La pantalla de configurar recordatorio
+import com.example.tott.ui.main.ReminderScreen
 import com.example.tott.ui.register.RegisterScreen
+import com.example.tott.ui.reminders.ReminderViewModel
 import com.example.tott.ui.theme.TOTTTheme
 
 class MainActivity : ComponentActivity() {
+    private val reminderViewModel: ReminderViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val reminderScheduler = ReminderScheduler(this)
         enableEdgeToEdge()
         setContent {
             TOTTTheme {
                 val navController = rememberNavController()
                 val context = LocalContext.current
+                val userRepository = UserRepository()
+                val users = userRepository.getStaticUsers()
+                val reminders = reminderViewModel.reminders
 
                 NavHost(
                     navController = navController,
-                    startDestination = "login" // La app siempre inicia en el login
+                    startDestination = "login"
                 ) {
-                    // 1. Ruta de Login
                     composable("login") {
                         LoginScreen(
                             onLoginSuccess = {
-                                // Al loguearse, vamos al MENÚ PRINCIPAL (el que tiene el calendario)
                                 navController.navigate("main") {
                                     popUpTo("login") { inclusive = true }
                                 }
@@ -43,18 +52,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 2. Ruta del Menú Principal (Dashboard)
                     composable("main") {
-                        // Le pasamos el navController para que pueda navegar desde la barra inferior
-                        MainScreen(navController = navController)
+                        MainScreen(navController = navController, users = users, reminders = reminders)
                     }
 
-                    // 3. Ruta para la pantalla de "Configurar Recordatorio"
                     composable("reminder_config") {
-                        ReminderScreen()
+                        ReminderScreen(
+                            users = users,
+                            onReminderAdded = {
+                                reminderViewModel.addReminder(it)
+                                reminderScheduler.schedule(it)
+                                Toast.makeText(context, "Recordatorio guardado", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            },
+                            viewModel = reminderViewModel
+                        )
                     }
 
-                    // 4. Ruta para el Registro de Usuario
                     composable("register") {
                         RegisterScreen(
                             onRegisterSuccess = { navController.popBackStack() },
@@ -62,9 +76,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 5. Ruta para Recuperar Contraseña
                     composable("forgot_password") {
-                        // Necesitarás crear este Composable si no lo tienes
                         ForgotPasswordScreen(
                             onBackClick = { navController.popBackStack() },
                             onSendClick = { email ->

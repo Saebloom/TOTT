@@ -3,12 +3,10 @@ package com.example.tott.ui.register
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-// *** CAMBIO DE IMPORTACIÓN DEL ICONO ***
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,7 +15,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tott.R
-import com.example.tott.data.CredentialsManager
 import com.example.tott.ui.theme.TOTTTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +35,6 @@ fun RegisterScreen(
                 navigationIcon = {
                     IconButton(onClick = onLoginClick) {
                         Icon(
-                            // *** USANDO EL NUEVO ICONO ***
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver"
                         )
@@ -50,7 +46,6 @@ fun RegisterScreen(
                 )
             )
         },
-        // ... (el resto del archivo no cambia)
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -114,8 +109,6 @@ fun RegisterScreen(
                     Button(
                         onClick = {
                             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-                                val credentialsManager = CredentialsManager(context)
-                                credentialsManager.saveCredentials(email, password)
                                 Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
                                 onRegisterSuccess()
                             } else {

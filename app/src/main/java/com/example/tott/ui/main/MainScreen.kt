@@ -8,16 +8,16 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.tott.data.Reminder
+import com.example.tott.data.User
+import com.example.tott.data.UserRepository
 import com.example.tott.ui.theme.TOTTTheme
 
-// Data class para los ítems de la barra de navegación
 private data class BottomNavItem(
     val label: String,
     val icon: ImageVector,
@@ -26,14 +26,13 @@ private data class BottomNavItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController) { // Recibe el NavController principal
-    // El índice de la pestaña activa (0="Usuarios", 1="Estado")
+fun MainScreen(navController: NavController, users: List<User>, reminders: List<Reminder>) {
     var selectedItemIndex by remember { mutableStateOf(0) }
 
     val items = listOf(
         BottomNavItem("Usuarios", Icons.Default.Person, "users_tab"),
         BottomNavItem("Estado del basurero", Icons.Default.Home, "status_tab"),
-        BottomNavItem("Recordatorios", Icons.Default.DateRange, "reminder_config") // Ruta para NAVEGAR
+        BottomNavItem("Recordatorios", Icons.Default.DateRange, "reminder_config")
     )
 
     Scaffold(
@@ -44,10 +43,8 @@ fun MainScreen(navController: NavController) { // Recibe el NavController princi
                         selected = selectedItemIndex == index,
                         onClick = {
                             if (item.route == "reminder_config") {
-                                // ¡ACCIÓN CLAVE! Usamos el NavController para ir a otra pantalla
                                 navController.navigate(item.route)
                             } else {
-                                // Para "Usuarios" y "Estado", solo cambiamos la pestaña interna
                                 selectedItemIndex = index
                             }
                         },
@@ -58,21 +55,20 @@ fun MainScreen(navController: NavController) { // Recibe el NavController princi
             }
         }
     ) { innerPadding ->
-        // Contenedor que muestra la pantalla de la pestaña activa
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedItemIndex) {
-                0 -> UsersScreen()         // Muestra la pantalla del calendario
-                1 -> TrashStatusView()    // Muestra la pantalla del estado del basurero
+                0 -> UsersScreen(users = users, reminders = reminders)
+                1 -> TrashStatusView()
             }
         }
     }
 }
 
-// VISTA PREVIA
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
     TOTTTheme {
-        MainScreen(navController = rememberNavController())
+        val userRepository = UserRepository()
+        MainScreen(navController = rememberNavController(), users = userRepository.getStaticUsers(), reminders = emptyList())
     }
 }

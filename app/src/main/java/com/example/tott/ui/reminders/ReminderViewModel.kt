@@ -15,18 +15,15 @@ class ReminderViewModel : ViewModel() {
     init {
         // Añadir datos de ejemplo para empezar
         _reminders.addAll(listOf(
-            Reminder(message = "Sacar la basura orgánica", hour = 21, minute = 0),
-            Reminder(message = "Revisar nivel del compost", hour = 10, minute = 30),
-            Reminder(message = "Llamar al servicio de reciclaje", hour = 9, minute = 0, isActive = false) // Ejemplo de recordatorio pasado
+            Reminder(userId = 1, dayOfWeek = "Lunes", hour = 21, minute = 0),
+            Reminder(userId = 2, dayOfWeek = "Miércoles", hour = 10, minute = 30),
+            Reminder(userId = 1, dayOfWeek = "Viernes", hour = 9, minute = 0, isActive = false) // Ejemplo de recordatorio pasado
         ))
     }
 
-    fun addReminder(message: String, hour: Int, minute: Int) {
-        if (message.isNotBlank()) {
-            val newReminder = Reminder(message = message, hour = hour, minute = minute)
-            _reminders.add(newReminder)
-            // Aquí iría la lógica para programar la alarma con AlarmManager
-        }
+    fun addReminder(reminder: Reminder) {
+        _reminders.add(reminder)
+        // Aquí iría la lógica para programar la alarma con AlarmManager
     }
 
     fun deleteReminder(reminderId: String) {

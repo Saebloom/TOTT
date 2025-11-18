@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,11 +22,8 @@ fun LoginScreen(
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
-    // *** SOLUCIÓN: Mueve la obtención del contexto aquí ***
     val context = LocalContext.current
-
-    // Ahora 'context' está disponible para inicializar CredentialsManager
-    val credentialsManager = CredentialsManager(context)
+    val credentialsManager = CredentialsManager()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -93,8 +87,8 @@ fun LoginScreen(
 
                     Button(
                         onClick = {
-                            // *** SOLUCIÓN: Reutiliza la instancia de credentialsManager ***
-                            if (credentialsManager.validateCredentials(email, password)) {
+                            val user = credentialsManager.validateCredentials(email, password)
+                            if (user != null) {
                                 Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                                 onLoginSuccess()
                             } else {
@@ -132,7 +126,6 @@ fun LoginScreen(
 fun LoginScreenPreview() {
     TOTTTheme {
         LoginScreen(
-
             onRegisterClick = {},
             onForgotPasswordClick = {},
             onLoginSuccess = {}

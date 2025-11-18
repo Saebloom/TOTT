@@ -26,25 +26,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.tott.R
+import com.example.tott.data.Reminder
+import com.example.tott.data.User
+import com.example.tott.data.UserRepository
 import com.example.tott.ui.theme.TOTTTheme
+import java.time.DayOfWeek
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
-// --- Datos de Ejemplo ---
-data class User(val name: String, val color: Color, val avatarRes: Int)
 data class CalendarDay(val day: String, val user: User? = null)
 
-// Asegúrate de que los archivos 'nicolas.jpg' y 'eugenia.jpg' estén en tu carpeta res/drawable
-val userNicolas = User("Nicolas Espejo", Color(0xFFB57F7F), R.drawable.nicolas) // Color café
-val userEugenia = User("Eugenia Espinoza", Color(0xFF8F7FB5), R.drawable.eugenia) // Color morado
-
-val users = listOf(userNicolas, userEugenia)
-
-// --- Pantalla Principal de Usuarios ---
 @Composable
-fun UsersScreen() {
+fun UsersScreen(users: List<User>, reminders: List<Reminder>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,8 +47,8 @@ fun UsersScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CalendarView()
-        UserListView()
+        CalendarView(users = users, reminders = reminders)
+        UserListView(users = users)
         Spacer(modifier = Modifier.weight(1f))
         val context = LocalContext.current
         Button(onClick = {
@@ -64,35 +59,30 @@ fun UsersScreen() {
     }
 }
 
-// --- Componentes de la pantalla ---
-
 @Composable
-private fun CalendarView() {
-    // Lógica para que el calendario sea interactivo
-    var currentMonth by remember { mutableStateOf(YearMonth.of(2025, 8)) } // Fijado a Agosto 2025 como en el mockup
+private fun CalendarView(users: List<User>, reminders: List<Reminder>) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
-    val calendarDays = remember(currentMonth) {
+    val calendarDays = remember(currentMonth, users, reminders) {
         val firstDayOfMonth = currentMonth.atDay(1)
-        val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Dom=0, Lun=1...
+        // Adjust for Sunday-start week if needed, but Locale default is usually fine
+        val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value // MONDAY is 1, SUNDAY is 7
         val daysInMonth = currentMonth.lengthOfMonth()
 
         val days = mutableListOf<CalendarDay>()
-        // Rellenar espacios vacíos al principio del mes
-        for (i in 0 until firstDayOfWeek) {
+        // Add blank cells for days before the first of the month
+        for (i in 1 until firstDayOfWeek) {
             days.add(CalendarDay(""))
         }
-        // Rellenar los días del mes
+
         for (day in 1..daysInMonth) {
-            // Lógica para asignar usuarios solo en Agosto 2025, como en el mockup
-            val user = if (currentMonth.year == 2025 && currentMonth.monthValue == 8) {
-                when (day) {
-                    2, 12, 22 -> userNicolas
-                    7, 17 -> userEugenia
-                    else -> null
-                }
-            } else {
-                null
-            }
+            val date = currentMonth.atDay(day)
+            val dayOfWeekSpanish = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("es"))
+
+            // Find the first active reminder for that day of the week
+            val reminderForDay = reminders.find { it.dayOfWeek.equals(dayOfWeekSpanish, ignoreCase = true) && it.isActive }
+            val user = reminderForDay?.let { rem -> users.find { it.id == rem.userId } }
+
             days.add(CalendarDay(day.toString(), user))
         }
         days
@@ -104,18 +94,13 @@ private fun CalendarView() {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Select date", style = MaterialTheme.typography.bodySmall)
-            Text("Mon, Aug 17", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy").withLocale(Locale.forLanguageTag("es"))),
+                    text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy").withLocale(Locale("es"))),
                     modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall
                 )
-                // Botones de texto para evitar errores de iconos
                 TextButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
                     Text("<", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
@@ -123,12 +108,12 @@ private fun CalendarView() {
                     Text(">", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                val daysOfWeek = listOf("D", "L", "M", "M", "J", "V", "S") // Días en español
+                val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
                 daysOfWeek.forEach {
-                    Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(it, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -141,7 +126,9 @@ private fun CalendarView() {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 4.dp)) {
                         if (day.user != null) {
                             Box(
-                                modifier = Modifier.size(32.dp).background(day.user.color, CircleShape),
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(day.user.color, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(day.day, color = Color.White, fontWeight = FontWeight.Bold)
@@ -157,7 +144,7 @@ private fun CalendarView() {
 }
 
 @Composable
-private fun UserListView() {
+private fun UserListView(users: List<User>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         users.forEach { user ->
             Card(
@@ -172,7 +159,10 @@ private fun UserListView() {
                     Image(
                         painter = painterResource(id = user.avatarRes),
                         contentDescription = "Avatar de ${user.name}",
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(user.name, color = Color.White, fontWeight = FontWeight.Bold)
@@ -186,6 +176,7 @@ private fun UserListView() {
 @Composable
 fun UsersScreenPreview() {
     TOTTTheme {
-        UsersScreen()
+        val repo = UserRepository()
+        UsersScreen(users = repo.getStaticUsers(), reminders = emptyList())
     }
 }

@@ -5,7 +5,8 @@ import java.util.UUID
 // Clase de datos para representar un recordatorio
 data class Reminder(
     val id: String = UUID.randomUUID().toString(), // ID único para cada recordatorio
-    val message: String,
+    val userId: Int, // ID del usuario asignado
+    val dayOfWeek: String, // Día de la semana (ej. "Lunes")
     val hour: Int,
     val minute: Int,
     val isActive: Boolean = true // Para saber si es un recordatorio próximo o pasado
