@@ -1,21 +1,14 @@
 package com.example.tott.data
 
-/**
- * Gestor de credenciales que valida a los usuarios contra una lista estática.
- */
 class CredentialsManager {
 
-    private val userRepository = UserRepository()
+    // Ya no necesitamos instanciar UserRepository() porque ahora es un object (Singleton)
 
-    /**
-     * Valida si el email y la contraseña proporcionados coinciden con los de un usuario estático.
-     *
-     * @param email El email a validar.
-     * @param password La contraseña a validar.
-     * @return El objeto User si las credenciales son válidas, `null` en caso contrario.
-     */
     fun validateCredentials(email: String, password: String): User? {
-        val users = userRepository.getStaticUsers()
+        // Obtenemos la lista viva del UserRepository
+        val users = UserRepository.getUsers()
+
+        // Buscamos si existe coincidencia
         return users.find { it.email == email && it.password == password }
     }
 }

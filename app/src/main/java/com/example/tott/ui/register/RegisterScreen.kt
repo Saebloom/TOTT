@@ -20,7 +20,8 @@ import com.example.tott.ui.theme.TOTTTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit,
+    // CAMBIO IMPORTANTE: Ahora pedimos una función que reciba los datos (nombre, email, pass)
+    onRegisterSuccess: (String, String, String) -> Unit,
     onLoginClick: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
@@ -109,8 +110,8 @@ fun RegisterScreen(
                     Button(
                         onClick = {
                             if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-                                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                                onRegisterSuccess()
+                                // Aquí pasamos los datos reales hacia afuera
+                                onRegisterSuccess(fullName, email, password)
                             } else {
                                 Toast.makeText(context, "Por favor, complete todos los campos", Toast.LENGTH_SHORT).show()
                             }
@@ -123,14 +124,5 @@ fun RegisterScreen(
                 }
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    TOTTTheme {
-        RegisterScreen(onLoginClick = {}, onRegisterSuccess = {})
     }
 }

@@ -176,7 +176,6 @@ private fun UserListView(users: List<User>) {
 @Composable
 fun UsersScreenPreview() {
     TOTTTheme {
-        val repo = UserRepository()
-        UsersScreen(users = repo.getStaticUsers(), reminders = emptyList())
+        UsersScreen(users = UserRepository.getUsers(), reminders = emptyList())
     }
 }

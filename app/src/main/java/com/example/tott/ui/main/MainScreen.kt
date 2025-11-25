@@ -11,11 +11,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.tott.data.Reminder
 import com.example.tott.data.User
 import com.example.tott.data.UserRepository
+import com.example.tott.ui.bluetooth.BluetoothViewModel
+import com.example.tott.ui.components.TrashControlCard
 import com.example.tott.ui.theme.TOTTTheme
 
 private data class BottomNavItem(
@@ -26,7 +29,12 @@ private data class BottomNavItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController, users: List<User>, reminders: List<Reminder>) {
+fun MainScreen(
+    navController: NavController,
+    users: List<User>,
+    reminders: List<Reminder>,
+    bluetoothViewModel: BluetoothViewModel // <--- 1. Recibimos el ViewModel aquí
+) {
     var selectedItemIndex by remember { mutableStateOf(0) }
 
     val items = listOf(
@@ -58,17 +66,13 @@ fun MainScreen(navController: NavController, users: List<User>, reminders: List<
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedItemIndex) {
                 0 -> UsersScreen(users = users, reminders = reminders)
-                1 -> TrashStatusView()
+
+                // <--- 2. Aquí conectamos la tarjeta de control real
+                1 -> TrashControlCard(
+                    viewModel = bluetoothViewModel,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    TOTTTheme {
-        val userRepository = UserRepository()
-        MainScreen(navController = rememberNavController(), users = userRepository.getStaticUsers(), reminders = emptyList())
     }
 }
