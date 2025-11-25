@@ -20,6 +20,9 @@ class TrashStatusViewModel(application: Application) : AndroidViewModel(applicat
     private val _isConnected = MutableStateFlow(false)
     val isConnected = _isConnected.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
     private val _batteryLevel = MutableStateFlow(100)
     val batteryLevel = _batteryLevel.asStateFlow()
 
@@ -42,6 +45,7 @@ class TrashStatusViewModel(application: Application) : AndroidViewModel(applicat
                 val connected = state == BluetoothService.STATE_CONNECTED
                 _isConnected.value = connected
                 if (connected) {
+                    _errorMessage.value = null // Borra el error si la conexión es exitosa
                     _lastSyncTime.value = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
                 }
             }
@@ -49,15 +53,18 @@ class TrashStatusViewModel(application: Application) : AndroidViewModel(applicat
 
         bluetoothService.receivedData
             .onEach { bytes ->
-                // Suponiendo que el Arduino envía el nivel de llenado como un número entero en formato de texto
-                bytes?.let { 
-                    val receivedString = String(it)
-                    try {
-                        _fillLevel.value = receivedString.trim().toInt()
-                    } catch (e: NumberFormatException) {
-                        // Manejar el caso de que los datos recibidos no sean un número válido
-                    }
+                val receivedString = String(bytes)
+                try {
+                    _fillLevel.value = receivedString.trim().toInt()
+                } catch (e: NumberFormatException) {
+                    _errorMessage.value = "Los datos recibidos no son válidos."
                 }
+            }
+            .launchIn(viewModelScope)
+
+        bluetoothService.errorMessage
+            .onEach { message ->
+                _errorMessage.value = message
             }
             .launchIn(viewModelScope)
     }
@@ -66,7 +73,7 @@ class TrashStatusViewModel(application: Application) : AndroidViewModel(applicat
         try {
             _pairedDevices.value = bluetoothService.getPairedDevices()?.toList() ?: emptyList()
         } catch (e: SecurityException) {
-            // Aquí se podría exponer un estado de error a la UI para solicitar permisos
+            _errorMessage.value = "Se requiere permiso de Bluetooth."
         }
     }
 
@@ -74,18 +81,14 @@ class TrashStatusViewModel(application: Application) : AndroidViewModel(applicat
         bluetoothService.connect(device)
     }
 
-    fun syncWithTrashCan() {
-        // La UI debería llamar a refreshPairedDevices y luego permitir al usuario seleccionar un dispositivo
-        // Una vez seleccionado, se llama a connectToDevice
-        // Para simular, podemos intentar conectar al primer dispositivo de la lista
-        val devices = bluetoothService.getPairedDevices()
-        devices?.firstOrNull()?.let {
-            connectToDevice(it)
-        }
-    }
-
     fun disconnect() {
         bluetoothService.stop()
+        _isConnected.value = false
+        _fillLevel.value = 0
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 
     override fun onCleared() {

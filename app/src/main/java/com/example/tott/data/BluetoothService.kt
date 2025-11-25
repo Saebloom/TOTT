@@ -36,6 +36,9 @@ class BluetoothService(private val context: Context) {
     private val _receivedData = MutableSharedFlow<ByteArray>()
     val receivedData: SharedFlow<ByteArray> = _receivedData.asSharedFlow()
 
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage: SharedFlow<String> = _errorMessage.asSharedFlow()
+
     companion object {
         const val STATE_NONE = 0
         const val STATE_CONNECTING = 1
@@ -111,6 +114,7 @@ class BluetoothService(private val context: Context) {
                 device.createRfcommSocketToServiceRecord(sppUuid)
             } catch (e: IOException) {
                 Log.e("BluetoothService", "Socket create() failed", e)
+                _errorMessage.tryEmit("Falló la creación del socket: ${e.message}")
                 null
             }
         }
@@ -132,6 +136,7 @@ class BluetoothService(private val context: Context) {
                     manageConnectedSocket(socket)
                 } catch (e: IOException) {
                     Log.e("BluetoothService", "Could not connect the client socket", e)
+                     _errorMessage.tryEmit("No se pudo conectar: ${e.message}")
                     try {
                         socket.close()
                     } catch (e: IOException) {
@@ -179,6 +184,7 @@ class BluetoothService(private val context: Context) {
                 mmOutStream.write(bytes)
             } catch (e: IOException) {
                 Log.e("BluetoothService", "Error occurred when sending data", e)
+                _errorMessage.tryEmit("Error al enviar datos: ${e.message}")
                 return
             }
         }
@@ -199,6 +205,7 @@ class BluetoothService(private val context: Context) {
 
     private fun connectionLost() {
         Log.d("BluetoothService", "Connection Lost")
+        _errorMessage.tryEmit("Se perdió la conexión del dispositivo")
         _connectionState.value = STATE_NONE
     }
 }
